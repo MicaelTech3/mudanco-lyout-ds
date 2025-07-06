@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Digital Signage</title>
+    <link rel="stylesheet" href="css/painel.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>DsignerTV</h2>
+            <div class="menu">
+                <a href="#" class="nav-link active" data-section="tvs-section">📺 TVs</a>
+                <a href="#" class="nav-link" data-section="app-section">📱 App</a>
+                <a href="#" class="nav-link" data-section="profile-section">👤 Perfil</a>
+                <a href="#" class="nav-link" data-section="support-section">🛠 Suporte</a>
+                <a href="#" id="dskey-btn-nav" class="dskey-btn-nav">dskey</a>
+                <a href="#" id="logout-link" class="logout">Sair</a>
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="topbar">
+                <h1>Dashboard</h1>
+                <button class="add-tv-btn">+ Adicionar TV</button>
+            </div>
+
+            <div class="cards">
+                <div class="card">
+                    <h2 id="activeCount">0</h2>
+                    <p>TVs Ativadas</p>
+                </div>
+                <div class="card">
+                    <h2 id="offlineCount">0</h2>
+                    <p>TVs Offline</p>
+                </div>
+                <div class="card">
+                    <h2 id="mediaCount">0</h2>
+                    <p>Total de Mídias</p>
+                </div>
+            </div>
+
+            <div class="content-section active" id="tvs-section">
+                <div class="status-chart">
+                    <h3>Status da TV</h3>
+                    <canvas id="statusChart" height="80"></canvas>
+                </div>
+                <div class="table-section">
+                    <h3>Lista de TVs</h3>
+                    <button class="select-categories-btn">Gerenciar Andares</button>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Display</th>
+                                <th>Status</th>
+                                <th>Localização</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tv-grid"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="content-section" id="app-section">
+                <h2>Download do App</h2>
+                <p>Como instalar</p>
+                <div class="gallery">
+                    <img src="https://via.placeholder.com/150" alt="QR Code">
+                </div>
+            </div>
+
+            <div class="content-section" id="profile-section">
+                <h2>Meu Perfil</h2>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <div class="device-info-value" id="user-email"></div>
+                </div>
+            </div>
+
+            <div class="content-section" id="support-section">
+                <h2>Suporte Técnico</h2>
+                <form id="support-form">
+                    <div class="form-group">
+                        <label for="support-email">Email:</label>
+                        <input type="email" id="support-email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="support-company">Nome da Empresa:</label>
+                        <input type="text" id="support-company" name="company" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="support-message">Mensagem:</label>
+                        <textarea id="support-message" name="message" required></textarea>
+                    </div>
+                    <button type="submit" class="btn">Enviar Chamado</button>
+                    <div id="support-message" class="message"></div>
+                </form>
+            </div>
+
+            <!-- Modais -->
+            <div class="modal" id="category-modal">
+                <div class="modal-content">
+                    <span class="close-btn">×</span>
+                    <h2>Gerenciar Andares</h2>
+                    <div class="form-group">
+                        <label for="new-category-name">Nome do Andar:</label>
+                        <input type="text" id="new-category-name">
+                    </div>
+                    <button id="add-category-btn" class="btn">Adicionar Andar</button>
+                    <div class="floor-list"></div>
+                </div>
+            </div>
+
+            <div class="modal" id="edit-floor-modal">
+                <div class="modal-content">
+                    <span class="close-btn">×</span>
+                    <h2>Editar Andar</h2>
+                    <div class="form-group">
+                        <label for="edit-floor-name">Nome do Andar:</label>
+                        <input type="text" id="edit-floor-name">
+                    </div>
+                    <button id="save-floor-btn" class="btn">Salvar</button>
+                </div>
+            </div>
+
+            <div class="modal" id="add-tv-modal">
+                <div class="modal-content">
+                    <span class="close-btn">×</span>
+                    <h2>Adicionar TV</h2>
+                    <div class="form-group">
+                        <label for="tv-name">Nome da TV:</label>
+                        <input type="text" id="tv-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="tv-category">Andar:</label>
+                        <select id="tv-category"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="tv-activation-key">Chave de Ativação:</label>
+                        <input type="text" id="tv-activation-key">
+                    </div>
+                    <button id="add-tv-submit-btn" class="btn">Adicionar TV</button>
+                </div>
+            </div>
+
+            <div class="modal" id="view-media-modal">
+                <div class="modal-content">
+                    <span class="close-btn">×</span>
+                    <h2>Mídia da TV</h2>
+                    <div id="media-container"></div>
+                </div>
+            </div>
+
+            <div class="modal" id="upload-media-modal">
+                <div class="modal-content">
+                    <span class="close-btn">×</span>
+                    <h2>Enviar Mídia</h2>
+                    <div class="form-group">
+                        <label for="media-type">Tipo de Mídia:</label>
+                        <select id="media-type">
+                            <option value="text">Texto</option>
+                            <option value="image">Imagem</option>
+                            <option value="video">Vídeo</option>
+                            <option value="link">Link Externo</option>
+                            <option value="playlist">Playlist</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="file-upload-group" style="display: none;">
+                        <label for="media-file">Arquivo (máx. 100MB):</label>
+                        <input type="file" id="media-file" accept="image/*,video/mp4,.gif">
+                        <div class="upload-progress">
+                            <div class="progress-bar"></div>
+                        </div>
+                        <img id="media-preview" class="media-preview">
+                    </div>
+                    <div class="form-group" id="playlist-group" style="display: none;">
+                        <label for="playlist-files">Arquivos para Playlist:</label>
+                        <input type="file" id="playlist-files" accept="image/*,video/mp4,.gif" multiple>
+                        <div id="media-preview" class="media-preview"></div>
+                    </div>
+                    <div class="form-group" id="link-upload-group" style="display: none;">
+                        <label for="media-link">URL:</label>
+                        <input type="text" id="media-link">
+                    </div>
+                    <div class="form-group" id="text-options" style="display: none;">
+                        <label for="text-content">Mensagem:</label>
+                        <textarea id="text-content"></textarea>
+                        <label for="text-color">Cor do Texto:</label>
+                        <input type="color" id="text-color" value="#ffffff">
+                        <label for="text-bg-color">Cor de Fundo:</label>
+                        <input type="color" id="text-bg-color" value="#1a1f3b">
+                        <label for="text-size">Tamanho da Fonte:</label>
+                        <select id="text-size">
+                            <option value="16">Pequeno</option>
+                            <option value="24">Médio</option>
+                            <option value="32">Grande</option>
+                            <option value="40">Extra Grande</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="image-options" style="display: none;">
+                        <label for="image-duration">Duração (segundos):</label>
+                        <input type="number" id="image-duration" value="10" min="1">
+                    </div>
+                    <div class="form-group" id="video-options" style="display: none;">
+                        <label for="video-loop">Repetir vídeo:</label>
+                        <input type="checkbox" id="video-loop">
+                    </div>
+                    <button id="upload-media-btn" class="btn">Enviar</button>
+                </div>
+            </div>
+
+            <div class="modal" id="activation-info-modal">
+                <div class="modal-content">
+                    <span class="close-btn">×</span>
+                    <h2>Informações de Ativação</h2>
+                    <div class="form-group">
+                        <label>Chave de Ativação:</label>
+                        <div class="device-info-value" id="activation-key-info"></div>
+                    </div>
+                    <div class="form-group" id="activation-key-container"></div>
+                    <div class="form-group">
+                        <label>Nome do Dispositivo:</label>
+                        <div class="device-info-value" id="activation-device-info"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Última Ativação:</label>
+                        <div class="device-info-value" id="activation-last-info"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal" id="text-message-modal">
+                <div class="modal-content">
+                    <span class="close-btn">×</span>
+                    <h2>Enviar Mensagem de Texto</h2>
+                    <div class="form-group">
+                        <label for="text-message-content">Mensagem:</label>
+                        <textarea id="text-message-content"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="text-color">Cor do Texto:</label>
+                        <input type="color" id="text-color" value="#ffffff">
+                    </div>
+                    <div class="form-group">
+                        <label for="bg-color">Cor de Fundo:</label>
+                        <input type="color" id="bg-color" value="#1a1f3b">
+                    </div>
+                    <div class="form-group">
+                        <label for="text-size">Tamanho da Fonte:</label>
+                        <select id="text-size">
+                            <option value="16">Pequeno</option>
+                            <option value="24">Médio</option>
+                            <option value="32">Grande</option>
+                            <option value="40">Extra Grande</option>
+                        </select>
+                    </div>
+                    <button id="send-text-btn" class="btn">Enviar Mensagem</button>
+                </div>
+            </div>
+
+            <div id="connection-status"></div>
+        </div>
+    </div>
+
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/Painel.js"></script>
+</body>
+</html>
