@@ -1,5 +1,5 @@
 // js/Painel.js
-const authModule = window.authModule;
+const authModule = window.authModule
 
 let categories = JSON.parse(localStorage.getItem('dsigner_categories')) || [];
 let tvs = JSON.parse(localStorage.getItem('dsigner_tvs')) || [];

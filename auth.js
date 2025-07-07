@@ -5,24 +5,32 @@ import { getDatabase } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase
 import { getStorage } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-storage.js';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB_aFqsTLYEwaPvIOC7_ptYUcTpN1eYzRY",
-  authDomain: "digital-signage-01.firebaseapp.com",
-  databaseURL: "https://digital-signage-01-default-rtdb.firebaseio.com",
-  projectId: "digital-signage-01",
-  storageBucket: "digital-signage-01.firebasestorage.app",
-  messagingSenderId: "781351499059",
-  appId: "1:781351499059:web:48a1e03c1004328bfdba46",
-  measurementId: "G-1LST7EWBVE"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyB_aFqsTLYEwaPvIOC7_ptYUcTpN1eYzRY",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "digital-signage-01.firebaseapp.com",
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL || "https://digital-signage-01-default-rtdb.firebaseio.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "digital-signage-01",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "digital-signage-01.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "781351499059",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:781351499059:web:48a1e03c1004328bfdba46",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-1LST7EWBVE"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const database = getDatabase(app); // Certifique-se de que o banco de dados está inicializado
-const storage = getStorage(app);
+try {
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const database = getDatabase(app);
+  const storage = getStorage(app);
 
-window.authModule = {
+  window.authModule = {
     auth,
     database,
     storage,
     signOut: () => auth.signOut()
-};
+  };
+  console.log('authModule inicializado:', window.authModule);
+
+  // Dispara um evento para sinalizar que authModule está pronto
+  window.dispatchEvent(new Event('authModuleLoaded'));
+} catch (error) {
+  console.error('Erro ao inicializar Firebase:', error);
+}
