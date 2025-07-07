@@ -1,42 +1,25 @@
-```javascript
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
-import { getAuth } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js';
-import { getDatabase } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js';
-import { getStorage } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-storage.js';
-
 const firebaseConfig = {
-  apiKey: "AIzaSyB_aFqsTLYEwaPvIOC7_ptYUcTpN1eYzRY",
-  authDomain: "digital-signage-01.firebaseapp.com",
-  databaseURL: "https://digital-signage-01-default-rtdb.firebaseio.com",
-  projectId: "digital-signage-01",
-  storageBucket: "digital-signage-01.firebasestorage.app",
-  messagingSenderId: "781351499059",
-  appId: "1:781351499059:web:48a1e03c1004328bfdba46",
-  measurementId: "G-1LST7EWBVE"
+ apiKey: "AIzaSyBhj6nv3QcIHyuznWPNM4t_0NjL0ghMwFw",
+  authDomain: "dsignertv.firebaseapp.com",
+  databaseURL: "https://dsignertv-default-rtdb.firebaseio.com",
+  projectId: "dsignertv",
+  storageBucket: "dsignertv.firebasestorage.app",
+  messagingSenderId: "930311416952",
+  appId: "1:930311416952:web:d0e7289f0688c46492d18d"
 };
 
-try {
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const database = getDatabase(app);
-    const storage = getStorage(app);
-
-    window.authModule = {
-        auth,
-        database,
-        storage,
-        signOut: () => auth.signOut()
-    };
-    console.log('authModule inicializado:', window.authModule);
-} catch (error) {
-    console.error('Erro ao inicializar Firebase:', error);
-    window.authModule = {
-        auth: null,
-        database: null,
-        storage: null,
-        signOut: () => Promise.resolve()
-    };
-} finally {
-    window.dispatchEvent(new Event('authModuleLoaded'));
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
 }
-```
+
+const auth = firebase.auth();
+const database = firebase.database();
+const storage = firebase.storage();
+
+window.authModule = {
+    auth,
+    database,
+    storage,
+    onAuthStateChanged: (callback) => auth.onAuthStateChanged(callback),
+    signOut: () => auth.signOut()
+};
