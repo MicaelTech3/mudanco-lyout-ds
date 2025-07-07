@@ -1,5 +1,4 @@
-// js/Painel.js
-const authModule = window.authModule
+const authModule = window.authModule;
 
 let categories = JSON.parse(localStorage.getItem('dsigner_categories')) || [];
 let tvs = JSON.parse(localStorage.getItem('dsigner_tvs')) || [];
@@ -48,7 +47,7 @@ const syncWithFirebase = async () => {
 
     try {
         console.log('Iniciando sincronização...');
-        const dbRef = authModule.database.ref(); // Usa ref a partir do database
+        const dbRef = authModule.database.ref();
         const categoriesSnapshot = await dbRef.child('categories').once('value');
         const tvsSnapshot = await dbRef.child('tvs').once('value');
 
@@ -638,7 +637,7 @@ window.uploadMidia = async function() {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM carregado, iniciando configuração...');
+    console.log('DOM carregado, esperando authModule...');
     updateConnectionStatus();
     window.addEventListener('online', () => {
         updateConnectionStatus();
@@ -646,9 +645,31 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     window.addEventListener('offline', updateConnectionStatus);
 
-    if (authModule && authModule.auth) {
-        import('https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js').then(({ onAuthStateChanged }) => {
-            onAuthStateChanged(authModule.auth, (user) => {
+    // Função para carregar o QR Code do Firebase Storage
+    const loadQrCode = async () => {
+        try {
+            if (authModule && authModule.storage) {
+                const storageRef = authModule.storage.ref('qrcodes/app-qrcode.jpg');
+                const qrcodeUrl = await storageRef.getDownloadURL();
+                const qrImage = document.querySelector('.gallery img');
+                if (qrImage) qrImage.src = qrcodeUrl;
+            } else {
+                console.error('Storage não disponível, usando fallback');
+                const qrImage = document.querySelector('.gallery img');
+                if (qrImage) qrImage.src = '/images/fallback.jpg';
+            }
+        } catch (error) {
+            console.error('Erro ao carregar QR Code:', error);
+            const qrImage = document.querySelector('.gallery img');
+            if (qrImage) qrImage.src = '/images/fallback.jpg';
+        }
+    };
+
+    // Função para inicializar autenticação
+    const initApp = () => {
+        const authModule = window.authModule;
+        if (authModule && authModule.auth) {
+            authModule.auth.onAuthStateChanged(user => {
                 if (!user) {
                     console.log('Nenhum usuário autenticado, redirecionando para login...');
                     window.location.href = 'index.html';
@@ -663,14 +684,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 else showToast('Modo offline ativado', 'info');
                 updateCategoryList();
                 updateTvGrid();
+                loadQrCode(); // Carrega o QR Code após autenticação
             });
-        }).catch(error => {
-            console.error('Erro ao carregar firebase-auth:', error);
+        } else {
+            console.error('authModule não disponível');
             showToast('Erro de autenticação. Contate o suporte.', 'error');
-        });
+        }
+    };
+
+    // Espera authModule estar disponível
+    if (window.authModule) {
+        initApp();
     } else {
-        console.error('authModule ou auth não estão disponíveis. Verifique a configuração do Firebase.');
-        showToast('Erro de autenticação. Contate o suporte.', 'error');
+        window.addEventListener('authModuleLoaded', initApp);
     }
 
     document.querySelectorAll('.nav-link').forEach(link => {
@@ -684,7 +710,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    const dskeyBtn = document.getElementById('dskey-btn-header');
+    const dskeyBtn = document.getElementById('dskey-btn-nav'); // Corrigido para ID correto
     if (dskeyBtn) {
         dskeyBtn.addEventListener('click', (e) => {
             e.preventDefault();
