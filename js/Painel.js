@@ -39,17 +39,10 @@ const updateConnectionStatus = () => {
 const syncWithFirebase = async () => {
     if (!isOnline()) return;
 
-    if (!authModule || !authModule.database) {
-        console.error('Firebase Database não está inicializado corretamente.');
-        showToast('Erro de conexão com o banco de dados. Tente novamente.', 'error');
-        return;
-    }
-
     try {
         console.log('Iniciando sincronização...');
-        const dbRef = authModule.database.ref();
-        const categoriesSnapshot = await dbRef.child('categories').once('value');
-        const tvsSnapshot = await dbRef.child('tvs').once('value');
+        const categoriesSnapshot = await authModule.database.ref('categories').once('value');
+        const tvsSnapshot = await authModule.database.ref('tvs').once('value');
 
         const remoteCategories = categoriesSnapshot.val() ? Object.entries(categoriesSnapshot.val()).map(([id, data]) => ({ id, ...data })) : [];
         const remoteTvs = tvsSnapshot.val() ? Object.entries(tvsSnapshot.val()).map(([id, data]) => ({ id, ...data })) : [];
@@ -57,7 +50,7 @@ const syncWithFirebase = async () => {
         categories = [...new Set([...remoteCategories, ...categories].map(c => JSON.stringify(c)))].map(c => JSON.parse(c));
         for (const cat of categories) {
             if (!remoteCategories.some(rc => rc.id === cat.id)) {
-                await dbRef.child(`categories/${cat.id}`).set(cat);
+                await authModule.database.ref(`categories/${cat.id}`).set(cat);
                 console.log(`Categoria ${cat.id} criada no Realtime Database`);
             }
         }
@@ -65,7 +58,7 @@ const syncWithFirebase = async () => {
         tvs = [...new Set([...remoteTvs, ...tvs].map(t => JSON.stringify(t)))].map(t => JSON.parse(t));
         for (const tv of tvs) {
             if (!remoteTvs.some(rt => rt.id === tv.id)) {
-                await dbRef.child(`tvs/${tv.id}`).set(tv);
+                await authModule.database.ref(`tvs/${tv.id}`).set(tv);
                 console.log(`TV ${tv.id} criada no Realtime Database`);
             }
         }
@@ -75,8 +68,8 @@ const syncWithFirebase = async () => {
         updateTvGrid();
         showToast('Sincronização concluída', 'success');
     } catch (error) {
-        console.error('Erro na sincronização:', error);
-        showToast('Erro na sincronização. Tente novamente.', 'error');
+        console.error('bem vindo ao Dsigner:', error);
+        showToast('bem vindos ao Dsigner.', 'error');
     }
 };
 
@@ -100,7 +93,7 @@ const updateCategoryList = () => {
                 <span>${category.name}</span>
                 <div class="floor-actions">
                     <button class="action-btn edit-floor-btn" data-id="${category.id}" title="Editar">
-                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTMgMTcuMjVWMjFiMy43NUwxNy44MSA5Ljk0bC0zLjc1LTMuNzVMMyAxNy4yNXpNMjAuNzEgNy4wNGMuMzktLjM9LjM5LTEuMDIgMC0xLjQxbC0yLjM0LTIuMzRjLS4zOS0uMzktMS4wMi0uMzktMS40MSAwbC0xLjgzIDEuODMgMy43NSAzLjc1IDEuODMtMS44M3oiLz48L3N2Zz4=" width="14" height="14" alt="Editar">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTMgMTcuMjVWMjFiMy43NUwxNy44MSA5Ljk0bC0zLjc1LTMuNzVMMyAxNy4yNXpNMjAuNzEgNy4wNGMuMzktLjM5LjM5LTEuMDIgMC0xLjQxbC0yLjM0LTIuMzRjLS4zOS0uMzktMS4wMi0uMzktMS40MSAwbC0xLjgzIDEuODMgMy43NSAzLjc1IDEuODMtMS44M3oiLz48L3N2Zz4=" width="14" height="14" alt="Editar">
                     </button>
                     <button class="action-btn delete-btn delete-floor-btn" data-id="${category.id}" title="Excluir">
                         <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTYgMTlhMiAyIDAgMCAwIDIgMmg4YTIgMiAwIDAgMCAyLTJWN0g2djEyTTE5IDRIMTUuNWwtMS0xaC05bC0xIDFINHYyaDE2VjR6Ii8+PC9zdmc+" width="14" height="14" alt="Excluir">
@@ -148,7 +141,7 @@ const updateTvGrid = () => {
                     <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEzIDNoLTJ2MTBoMlYzem03IDhoLTRjLTEuMS0yLjQtMi41LTQuOC00LTYgMS4zLTEuMyAyLjYtMi4yIDQtMyAyLjIgMS4zIDMuNSAzIDQgNXoiLz48L3N2Zz4=" width="14" height="14">
                 </button>
                 <button class="tv-action-btn view-tv-btn" data-id="${tv.id}" title="Ver Mídia">
-                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyIDQuNUM2LjUgNC41IDIgNy41IDIgMTJzNC41IDcuNSAxMCA3LjVjNS41IDAgMTAtMyAxMC03LjUtNC41LTcuNS0xMC03LjUtMTAuNXptMCAxMi41Yy0zLjggMC03LjItMi42LTguOS01LjUgMS43LTIuOSA1LjEtNS41IDguOS01LjVzNy4yIDIuNiA4LjkgNS41LTEuNyAyLjktNS4xIDUuNS04LjkuNXptMC0xMC41YzIuNSAwIDQuNSAyIDQuNSA0LjVzLTIgNC41LTQuNSA0LjUtNC41LTItNC41LTQuNSAyLTQuNSA0LjUtNC41eiIvPjwvc3ZnPg==" width="14" height="14">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyIDQuNUM2LjUgNC41IDIgNy41IDIgMTJzNC41IDcuNSAxMCA3LjVjNS41IDAgMTAtMyAxMC03LjUtNC41LTcuNS0xMC03LjUtMTAuNXptMCAxMi41Yy0zLjggMC03LjItMi42LTguOS01LjUgMS43LTIuOSA1LjEtNS41IDguOS01LjVzNy4yIDIuNiA4LjkgNS41LTEuNyAyLjktNS4xIDUuNS04LjkuNXptMC0xMC41YzIuNSAwIDQuNSAyIDQuNSA0LjVzLTIgNC41LTQuNSA0LjUtNC41LTItNC51LTQuNSAyLTQuNSA0LjUtNC41eiIvPjwvc3ZnPg==" width="14" height="14">
                 </button>
                 <button class="tv-action-btn upload-tv-btn" data-id="${tv.id}" title="Enviar mídia">
                     <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTkgMTZoNnYtNmg0bC03LTctNyA3aDR6bS00IDJoMTR2Mkg1eiIvPjwvc3ZnPg==" width="14" height="14">
@@ -311,7 +304,7 @@ function showTvMedia(tvId) {
                 itemDiv.className = 'playlist-item';
                 itemDiv.dataset.index = index;
                 itemDiv.innerHTML = `
-                    <img src="${item.type === 'video' ? 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTE3IDMuNUgxMHYzLjVIMTdWMy41ek0xMiAxM3Y3LjVoNS41aDEuNWExLjUgMS41IDAgMCAxIDEuNSAxLjV2MS41YzAgLjgzLS42NyAxLjUtMS41IDEuNWgtMy41di0zLjVIMTdWMjEuNWgtM3YxLjVoLTN2LTEuNWgtM3YtMS41YzAtLjgzLjY3LTEuNSAxLjUtMS41aDEuNWgtMS41djcuNUg3di03LjVIM3YxLjVoLTEuNWMtLjgzIDAtMS41LS42Ny0xLjUtMS41di0xLjVjMC0uODMuNjctMS41IDEuNS0xLjVoMS41djcuNUgxMHYtNy41SDd2My41SDMuNWMtLjgzIDAtMS41LS42Ny0xLjUtMS41di0zLjVhMS41IDEuNSAwIDAgMSAxLjUtMS41aDMuNXYzLjVIMTB2LTMuNWgtM3YtMS41YzAtLjgzLjY3LTEuNSAxLjUtMS41aDEuNWgtMS41djMuNUgxN3YtMy41aC0zdi0xLjVjMC0uODMuNjctMS41IDEuNS0xLjVoMS41djMuNXoiLz48L3N2Zz4=' : item.url}" style="max-width: 100px; margin: 5px;">
+                    <img src="${item.type === 'video' ? 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTE3IDMuNUgxMHYzLjVIMTdWMy41ek0xMiAxM3Y3LjVoNS41aDEuNWExLjUgMS41IDAgMCAxIDEuNSAxLjV2MS41YzAgLjgzLS42NyAxLjUtMS41IDEuNWgtMy41di0zLjVIMTdWMjEuNWgtM3YxLjVoLTN2LTEuNWgtM3YtMS41YzAtLjgzLjY3LTEuNSAxLjUtMS41aDEuNWgtMS41djcuNUg3di03LjVIM3YxLjVoLTEuNWMtLjgzIDAtMS41LS42Ny0xLjUtMS41di0xLjVjMC0uODMuNjctMS41IDEuNS0xLjVoMS41djcuNUgxMHYtNy41SDd2My41SDMuNWMtLjgzIDAtMS41LS42Ny0xLjUtMS41di0zLjVhMS41IDEuNSAwIDAgMSAxLjUtMS41aDMuNXYzLjVIMTB2LTMuNWgtM3YtMS41YzAtLjgzLjY3LTEuNSAxLjUtMS41aDEuNWgtMS41djMuNUgxN3YtMy41aC0zdi0xLjVjMC0uODMuNjctMS41IDEuNS0xLjVoMS41YzAgMCAzLjUgMCAzLjUgMHYzLjV6Ii8+PC9zdmc+' : item.url}" alt="${item.type}" style="width: 100px; height: 100px; object-fit: cover;">
                     <div>
                         <p>Tipo: ${item.type}</p>
                         <p>Duração: <input type="number" class="playlist-duration" value="${item.duration || 10}" min="1" ${item.type === 'video' ? 'disabled' : ''}> seg</p>
@@ -630,6 +623,7 @@ window.uploadMidia = async function() {
 
         const fileInput = document.getElementById('media-file');
         if (fileInput) fileInput.value = '';
+
     } catch (error) {
         console.error("Erro no envio:", error);
         showToast('Falha no envio: ' + error.message, 'error');
@@ -637,7 +631,7 @@ window.uploadMidia = async function() {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM carregado, esperando authModule...');
+    console.log('DOM carregado, iniciando configuração...');
     updateConnectionStatus();
     window.addEventListener('online', () => {
         updateConnectionStatus();
@@ -645,56 +639,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     window.addEventListener('offline', updateConnectionStatus);
 
-    const loadQrCode = async () => {
-        try {
-            if (authModule && authModule.storage) {
-                const storageRef = authModule.storage.ref('qrcodes/app-qrcode.jpg');
-                const qrcodeUrl = await storageRef.getDownloadURL();
-                const qrImage = document.querySelector('.gallery img');
-                if (qrImage) qrImage.src = qrcodeUrl;
-            } else {
-                console.error('Storage não disponível, usando fallback');
-                const qrImage = document.querySelector('.gallery img');
-                if (qrImage) qrImage.src = '/images/fallback.jpg';
-            }
-        } catch (error) {
-            console.error('Erro ao carregar QR Code:', error);
-            const qrImage = document.querySelector('.gallery img');
-            if (qrImage) qrImage.src = '/images/fallback.jpg';
+    authModule.onAuthStateChanged(user => {
+        if (!user) {
+            console.log('Nenhum usuário autenticado, redirecionando para login...');
+            window.location.href = 'index.html';
+            return;
         }
-    };
-
-    const initApp = () => {
-        const authModule = window.authModule;
-        if (authModule && authModule.auth) {
-            authModule.auth.onAuthStateChanged(user => {
-                if (!user) {
-                    console.log('Nenhum usuário autenticado, redirecionando para login...');
-                    window.location.href = 'index.html';
-                    return;
-                }
-                console.log('Usuário autenticado:', user.uid);
-                const userEmail = document.getElementById('user-email');
-                if (userEmail) userEmail.textContent = user.email;
-                const supportEmail = document.getElementById('support-email');
-                if (supportEmail) supportEmail.value = user.email;
-                if (isOnline()) syncWithFirebase();
-                else showToast('Modo offline ativado', 'info');
-                updateCategoryList();
-                updateTvGrid();
-                loadQrCode();
-            });
-        } else {
-            console.error('authModule não disponível');
-            showToast('Erro de autenticação. Contate o suporte.', 'error');
-        }
-    };
-
-    if (window.authModule) {
-        initApp();
-    } else {
-        window.addEventListener('authModuleLoaded', initApp);
-    }
+        console.log('Usuário autenticado:', user.uid);
+        const userEmail = document.getElementById('user-email');
+        if (userEmail) userEmail.textContent = user.email;
+        const supportEmail = document.getElementById('support-email');
+        if (supportEmail) supportEmail.value = user.email;
+        if (isOnline()) syncWithFirebase();
+        else showToast('Modo offline ativado', 'info');
+        updateCategoryList();
+        updateTvGrid();
+    });
 
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', e => {
@@ -707,7 +667,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    const dskeyBtn = document.getElementById('dskey-btn-nav');
+    const dskeyBtn = document.getElementById('dskey-btn-header');
     if (dskeyBtn) {
         dskeyBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -1236,18 +1196,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const supportMessage = document.getElementById('support-message');
                 if (supportMessage) {
                     supportMessage.textContent = 'Chamado enviado com sucesso!';
-                    supportMessage.style.color = 'green';
+                    supportMessage.className = 'message success';
                 }
-                showToast('Chamado enviado com sucesso!', 'success');
                 e.target.reset();
+                showToast('Chamado enviado!', 'success');
             } catch (error) {
-                console.error('Erro ao enviar chamado:', error);
                 const supportMessage = document.getElementById('support-message');
                 if (supportMessage) {
-                    supportMessage.textContent = 'Erro ao enviar chamado. Tente novamente.';
-                    supportMessage.style.color = 'red';
+                    supportMessage.textContent = `Erro ao enviar: ${error.message}`;
+                    supportMessage.className = 'message error';
                 }
-                showToast('Erro ao enviar chamado', 'error');
+                showToast('Falha ao enviar chamado', 'error');
             } finally {
                 if (btn) {
                     btn.disabled = false;
@@ -1260,10 +1219,43 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', e => {
         const floorBtn = e.target.closest('.floor-btn');
         if (floorBtn && !e.target.closest('.action-btn')) {
-            const categoryId = floorBtn.dataset.id;
-            selectedCategoryId = selectedCategoryId === categoryId ? null : categoryId;
+            selectedCategoryId = floorBtn.dataset.id;
+            console.log('Categoria selecionada:', selectedCategoryId);
             updateCategoryList();
             updateTvGrid();
         }
     });
+
+    const sendTextBtn = document.getElementById('send-text-btn');
+    if (sendTextBtn) {
+        sendTextBtn.addEventListener('click', async function() {
+            const tvId = this.dataset.tvId;
+            const contentInput = document.getElementById('text-message-content');
+            const message = contentInput ? contentInput.value.trim() : '';
+
+            if (!message) {
+                showToast('Digite uma mensagem!', 'error');
+                return;
+            }
+
+            const messageData = {
+                text: message,
+                color: document.getElementById('text-color')?.value || '#ffffff',
+                bgColor: document.getElementById('bg-color')?.value || '#1a1f3b',
+                fontSize: document.getElementById('text-size')?.value || '24'
+            };
+
+            await sendTextMessage(tvId, messageData);
+            const modal = document.getElementById('text-message-modal');
+            if (modal) modal.style.display = 'none';
+        });
+    }
+
+    const textMessageModalClose = document.querySelector('#text-message-modal .close-btn');
+    if (textMessageModalClose) {
+        textMessageModalClose.addEventListener('click', () => {
+            const modal = document.getElementById('text-message-modal');
+            if (modal) modal.style.display = 'none';
+        });
+    }
 });
